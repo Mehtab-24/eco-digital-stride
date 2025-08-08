@@ -116,18 +116,22 @@ const Dashboard = () => {
           </p>
         </div>
         <div className="text-center mb-8">
-  <button
+  <Button
+  variant="eco-outline"
+  size="lg"
   onClick={() => {
     const confirmReset = window.confirm("Are you sure you want to reset your carbon data and start fresh?");
     if (confirmReset) {
-      localStorage.clear();
-      window.location.reload();
+      localStorage.removeItem('carbonFootprintData');
+      window.location.href = '/calculator';
     }
   }}
-  className="mt-4 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition duration-200 flex items-center gap-2"
+  className="flex items-center gap-2"
 >
-  🔁 Reset My Carbon Data
-</button>
+  <RotateCcw className="h-4 w-4" />
+  Reset My Carbon Data
+</Button>
+
 
 </div>
 
