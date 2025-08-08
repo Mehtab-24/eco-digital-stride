@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { BarChart3, Leaf, Lightbulb, Calculator, TrendingDown, TreePine } from 'lucide-react';
 import { RotateCcw } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
+
 
 interface FootprintData {
   streaming: number;
@@ -20,11 +22,12 @@ interface FootprintData {
 
 const Dashboard = () => {
   const [data, setData] = useState<FootprintData | null>(null);
-
+    const navigate = useNavigate();
   useEffect(() => {
     const savedData = localStorage.getItem('carbonFootprintData');
     if (savedData) {
       setData(JSON.parse(savedData));
+      
     }
   }, []);
 
@@ -120,12 +123,13 @@ const Dashboard = () => {
   variant="eco-outline"
   size="lg"
   onClick={() => {
-    const confirmReset = window.confirm("Are you sure you want to reset your carbon data and start fresh?");
-    if (confirmReset) {
-      localStorage.removeItem('carbonFootprintData');
-      window.location.href = '/calculator';
-    }
-  }}
+  const confirmReset = window.confirm("Are you sure you want to reset your carbon data and start fresh?");
+  if (confirmReset) {
+    localStorage.removeItem('carbonFootprintData');
+    navigate('/calculator'); 
+  }
+}}
+
   className="flex items-center gap-2"
 >
   <RotateCcw className="h-4 w-4" />
