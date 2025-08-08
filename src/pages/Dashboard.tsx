@@ -116,7 +116,18 @@ const Dashboard = () => {
           </p>
         </div>
         <div className="text-center mb-8">
-  
+  <button
+  onClick={() => {
+    const confirmReset = window.confirm("Are you sure you want to reset your carbon data and start fresh?");
+    if (confirmReset) {
+      localStorage.clear();
+      window.location.reload();
+    }
+  }}
+  className="mt-4 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition duration-200 flex items-center gap-2"
+>
+  🔁 Reset My Carbon Data
+</button>
 
 </div>
 
