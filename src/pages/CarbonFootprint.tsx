@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calculator as CalculatorIcon, Utensils, Car, Lightbulb, Leaf } from "lucide-react";
+import { Calculator as CalculatorIcon, Utensils, Car, Lightbulb, Leaf, Bike, Zap, TrendingDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface EmissionData {
@@ -130,6 +130,59 @@ const CarbonFootprint = () => {
     },
   ];
 
+  // Only show suggestions after form is submitted (for demo purposes)
+  const getSwapsAndComparison = () => {
+    const total = calculateEmissions().total;
+
+    const indiaAverage = 48; // kg CO₂e/week (~2,500 kg/year)
+    const worldAverage = 96; // kg CO₂e/week (~5,000 kg/year)
+
+    const comparisons = [
+      {
+        label: "India Average",
+        value: `${indiaAverage} kg/week`,
+        status: total > indiaAverage ? "above" : "below",
+      },
+      {
+        label: "World Average",
+        value: `${worldAverage} kg/week`,
+        status: total > worldAverage ? "above" : "below",
+      },
+    ];
+
+    const swaps = [];
+
+    // Personalized Swap Suggestions
+    if (parseFloat(formData.meatMealsPerWeek) > 3) {
+      swaps.push({
+        icon: Utensils,
+        from: "Daily Meat Meals",
+        to: "Plant-Based 2x/Week",
+        impact: "Save ~150 kg/year",
+      });
+    }
+    if (parseFloat(formData.vehicleMilesPerWeek) > 50) {
+      swaps.push({
+        icon: Bike,
+        from: "Drive Alone",
+        to: "Bike or Public Transit",
+        impact: "Save ~200 kg/year",
+      });
+    }
+    if (parseFloat(formData.electricityKwhPerWeek) > 400) {
+      swaps.push({
+        icon: Zap,
+        from: "Standard Bulbs",
+        to: "LEDs + Unplug Devices",
+        impact: "Save ~100 kg/year",
+      });
+    }
+
+    return { comparisons, swaps };
+  };
+
+  const { comparisons, swaps } = getSwapsAndComparison();
+
   return (
     <div className="min-h-screen py-12 bg-gray-50 dark:bg-gray-900">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -142,7 +195,7 @@ const CarbonFootprint = () => {
             Personal Carbon Footprint Calculator
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Estimate your weekly carbon emissions based on food, travel, and electricity use.
+            Estimate your weekly carbon emissions and discover ways to reduce your impact.
           </p>
         </div>
 
@@ -193,7 +246,7 @@ const CarbonFootprint = () => {
                 ))}
               </div>
 
-              {/* Info Box */}
+              {/* How We Calculate */}
               <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
                 <h4 className="font-semibold text-green-800 dark:text-green-300 mb-2 flex items-center gap-2">
                   <Leaf className="h-4 w-4" />
@@ -246,6 +299,59 @@ const CarbonFootprint = () => {
                 </Button>
               </div>
             </form>
+
+            {/* Results Preview (only visible after submit, but shown here for UX) */}
+            {(formData.meatMealsPerWeek || formData.vehicleMilesPerWeek || formData.electricityKwhPerWeek) && (
+              <div className="mt-8 space-y-8">
+                {/* Comparison with Averages */}
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+                  <h4 className="font-semibold text-blue-800 dark:text-blue-300 mb-4 flex items-center gap-2">
+                    <TrendingDown className="h-5 w-5" />
+                    Comparison with Averages
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {comparisons.map((item, i) => (
+                      <div key={i} className="p-3 bg-white dark:bg-gray-700 rounded-md shadow-sm">
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{item.label}</p>
+                        <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{item.value}</p>
+                        <p className={`text-xs ${item.status === 'above' ? 'text-red-500' : 'text-green-500'}`}>
+                          You are {item.status} average
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Personalized Swaps */}
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6">
+                  <h4 className="font-semibold text-yellow-800 dark:text-yellow-300 mb-4 flex items-center gap-2">
+                    <Lightbulb className="h-5 w-5" />
+                    Personalized Swaps
+                  </h4>
+                  {swaps.length > 0 ? (
+                    <div className="space-y-4">
+                      {swaps.map((swap, i) => (
+                        <div key={i} className="flex items-center gap-3 p-3 bg-white dark:bg-gray-700 rounded-md shadow-sm">
+                          <div className="bg-yellow-100 dark:bg-yellow-900 p-2 rounded-lg">
+                            <swap.icon className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                              Switch from <strong>{swap.from}</strong> to <strong>{swap.to}</strong>
+                            </p>
+                            <p className="text-xs text-green-600 dark:text-green-400">{swap.impact}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Great job! Your inputs are already eco-friendly. Keep it up!
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
