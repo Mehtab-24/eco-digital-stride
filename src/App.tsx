@@ -10,6 +10,7 @@ import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import CarbonCalculator from "./pages/CarbonCalculator";
+import CarbonFootprint from "./pages/CarbonFootprint";
 
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
             <Route path="/" element={<Home />} />
             <Route path="/calculator" element={<CarbonCalculator />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/carbon-footprint" element={<CarbonFootprint />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Layout>

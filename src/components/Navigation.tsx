@@ -17,6 +17,7 @@ const Navigation = () => {
     { name: 'Home', path: '/' },
     { name: 'Carbon Calculator', path: '/calculator' },
     { name: 'Dashboard', path: '/dashboard' },
+    { name: 'Carbon Footprint', path: '/carbon-footprint' },
   ];
 
   const isActive = (path: string) => location.pathname === path;
