@@ -1,114 +1,187 @@
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { estimateCarbonFootprint } from "@/utils/carbonEstimator";
-import { Calculator, Leaf, Utensils, Car, Lightbulb } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Calculator as CalculatorIcon, Leaf, Monitor, Cloud, Smartphone } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+interface EmissionData {
+  streaming: number;
+  cloudStorage: number;
+  deviceCharging: number;
+  laptopUsage: number;
+  emailUsage: number;
+}
 
 const CarbonFootprint = () => {
   const [formData, setFormData] = useState({
-    meatPerWeek: "",
-    vehicleMiles: "",
-    electricityKWh: "",
+    streamingHours: '',
+    cloudStorageGB: '',
+    chargingFrequency: '',
+    laptopUsageHours: '',
+    emailsPerDay: '',
   });
-  const [result, setResult] = useState(null);
 
-  const handleInputChange = (field, value) => {
+  const [isCalculating, setIsCalculating] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
-      [field]: value,
+      [field]: value
     }));
   };
 
-  const handleCalculate = () => {
-    const inputs = {
-      meatPerWeek: parseInt(formData.meatPerWeek) || 0,
-      vehicleMiles: parseFloat(formData.vehicleMiles) || 0,
-      electricityKWh: parseFloat(formData.electricityKWh) || 0,
-    };
+  const calculateEmissions = (): EmissionData => {
+    const streamingEmissions = parseFloat(formData.streamingHours) * 0.036 || 0;
+    const cloudEmissions = parseFloat(formData.cloudStorageGB) * 0.005 || 0;
+    const chargingEmissions = parseFloat(formData.chargingFrequency) * 0.008 || 0;
+    const laptopEmissions = parseFloat(formData.laptopUsageHours) * 0.02 || 0; // ~20g/hour
+    const emailEmissions = parseFloat(formData.emailsPerDay) * 0.004 || 0; // ~4g/email
 
-    const carbonFootprint = estimateCarbonFootprint(inputs);
-    setResult(carbonFootprint);
+    return {
+      streaming: streamingEmissions,
+      cloudStorage: cloudEmissions,
+      deviceCharging: chargingEmissions,
+      laptopUsage: laptopEmissions,
+      emailUsage: emailEmissions,
+    };
   };
 
-  const handleReset = () => {
-    setFormData({
-      meatPerWeek: "",
-      vehicleMiles: "",
-      electricityKWh: "",
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (
+      !formData.streamingHours ||
+      !formData.cloudStorageGB ||
+      !formData.chargingFrequency ||
+      !formData.laptopUsageHours ||
+      !formData.emailsPerDay
+    ) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all fields to calculate your carbon footprint.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsCalculating(true);
+
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    const emissions = calculateEmissions();
+
+    // Store results in localStorage for the dashboard
+    localStorage.setItem('carbonFootprintData', JSON.stringify({
+      ...emissions,
+      timestamp: new Date().toISOString(),
+      inputs: formData,
+    }));
+
+    setIsCalculating(false);
+
+    toast({
+      title: "Calculation Complete!",
+      description: "Your carbon footprint has been calculated. Redirecting to dashboard...",
     });
-    setResult(null);
+
+    setTimeout(() => {
+      navigate('/dashboard');
+    }, 1000);
   };
 
   const inputSections = [
     {
-      icon: Utensils,
-      title: "Food",
-      field: "meatPerWeek",
-      label: "Meat consumption per week",
-      placeholder: "e.g., 3",
-      suffix: "times/week",
-      description: "Number of times you consume meat or animal products",
+      icon: Monitor,
+      title: 'Streaming Hours',
+      field: 'streamingHours',
+      label: 'Daily streaming hours',
+      placeholder: 'e.g., 4',
+      suffix: 'hours/day',
+      description: 'Include video streaming, music, and online gaming',
     },
     {
-      icon: Car,
-      title: "Travel",
-      field: "vehicleMiles",
-      label: "Vehicle miles per week",
-      placeholder: "e.g., 100",
-      suffix: "miles/week",
-      description: "Total distance driven by car or other vehicles",
+      icon: Cloud,
+      title: 'Cloud Storage',
+      field: 'cloudStorageGB',
+      label: 'Cloud storage usage',
+      placeholder: 'e.g., 50',
+      suffix: 'GB',
+      description: 'Total data stored in cloud services',
     },
     {
-      icon: Lightbulb,
-      title: "Electricity",
-      field: "electricityKWh",
-      label: "Electricity usage",
-      placeholder: "e.g., 500",
-      suffix: "kWh/week",
-      description: "Weekly electricity consumption at home",
+      icon: Smartphone,
+      title: 'Device Charging',
+      field: 'chargingFrequency',
+      label: 'Daily charging cycles',
+      placeholder: 'e.g., 2',
+      suffix: 'charges/day',
+      description: 'All devices: phone, laptop, tablet, etc.',
+    },
+    {
+      icon: Monitor,
+      title: 'Laptop Usage',
+      field: 'laptopUsageHours',
+      label: 'Laptop usage (hours/day)',
+      placeholder: 'e.g., 5',
+      suffix: 'hours/day',
+      description: 'Estimated daily laptop screen time',
+    },
+    {
+      icon: Cloud,
+      title: 'Emails Sent',
+      field: 'emailsPerDay',
+      label: 'Emails sent per day',
+      placeholder: 'e.g., 20',
+      suffix: 'emails/day',
+      description: 'An average email emits ~4g CO₂',
     },
   ];
 
   return (
-    <div className="min-h-screen py-12 bg-green-50">
+    <div className="min-h-screen py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center space-y-6 mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+          <div className="bg-gradient-eco p-4 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
+            <CalculatorIcon className="h-8 w-8 text-white" />
+          </div>
+          <h1 className="text-3xl md:text-4xl font-bold text-eco-dark dark:text-gray-100">
             Carbon Footprint Calculator
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Estimate your weekly carbon emissions based on food consumption, travel habits, and electricity usage.
+          <p className="text-lg text-muted-foreground dark:text-gray-300 max-w-2xl mx-auto">
+            Calculate your digital carbon emissions by providing information about your daily digital activities.
           </p>
         </div>
 
         {/* Form */}
-        <Card className="shadow-lg border-0 rounded-xl bg-white">
+        <Card className="shadow-eco">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-800 text-2xl font-bold">
-              <Leaf className="h-6 w-6 text-green-600" />
-              Your Lifestyle
+            <CardTitle className="flex items-center gap-2 text-eco-primary">
+              <Leaf className="h-5 w-5" />
+              Your Digital Activity
             </CardTitle>
-            <p className="text-gray-600">
-              Fill in the details below to estimate your weekly carbon footprint.
-            </p>
+            <CardDescription className="dark:text-gray-400">
+              Fill in the details below to estimate your weekly digital carbon footprint.
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <form className="space-y-8">
+            <form onSubmit={handleSubmit} className="space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {inputSections.map((section, index) => (
                   <div key={index} className="space-y-4">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="bg-green-100 p-2 rounded-lg">
-                        <section.icon className="h-5 w-5 text-green-600" />
+                      <div className="bg-eco-primary/10 p-2 rounded-lg">
+                        <section.icon className="h-5 w-5 text-eco-primary" />
                       </div>
-                      <h3 className="font-semibold text-gray-900">{section.title}</h3>
+                      <h3 className="font-semibold text-eco-dark dark:text-gray-200">{section.title}</h3>
                     </div>
-
                     <div className="space-y-2">
-                      <Label htmlFor={section.field} className="text-sm font-medium text-gray-700">
+                      <Label htmlFor={section.field} className="text-sm font-medium dark:text-gray-300">
                         {section.label}
                       </Label>
                       <div className="relative">
@@ -118,67 +191,70 @@ const CarbonFootprint = () => {
                           min="0"
                           step="0.1"
                           placeholder={section.placeholder}
-                          value={formData[section.field]}
+                          value={formData[section.field as keyof typeof formData]}
                           onChange={(e) => handleInputChange(section.field, e.target.value)}
-                          className="pr-20 border-gray-300 focus:border-green-500 focus:ring-green-500/20"
+                          className="pr-20"
                         />
-                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-500">
+                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-muted-foreground dark:text-gray-400">
                           {section.suffix}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground dark:text-gray-400">
                         {section.description}
                       </p>
                     </div>
                   </div>
                 ))}
               </div>
-
-              {/* Submit Button */}
+              <div className="bg-eco-primary/5 border border-eco-primary/20 rounded-lg p-6">
+                <h4 className="font-semibold text-eco-primary mb-2 flex items-center gap-2">
+                  <Leaf className="h-4 w-4" />
+                  How We Calculate
+                </h4>
+                <p className="text-sm text-muted-foreground dark:text-gray-400">
+                  Our calculations are based on industry research on energy consumption and carbon emissions 
+                  from digital activities. Results provide estimated weekly CO₂ emissions to help you understand 
+                  your digital environmental impact.
+                </p>
+              </div>
+              <div className="text-center">
+                <Button 
+                  type="submit" 
+                  variant="eco" 
+                  size="xl" 
+                  disabled={isCalculating}
+                  className="w-full sm:w-auto min-w-[200px]"
+                >
+                  {isCalculating ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Calculating...
+                    </>
+                  ) : (
+                    <>
+                      Calculate My Impact
+                      <CalculatorIcon className="ml-2 h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </div>
               <div className="text-center">
                 <Button
                   type="button"
-                  onClick={handleCalculate}
-                  className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                  variant="ghost"
+                  className="text-sm text-eco-primary underline hover:no-underline"
+                  onClick={() => setFormData({
+                    streamingHours: '',
+                    cloudStorageGB: '',
+                    chargingFrequency: '',
+                    laptopUsageHours: '',
+                    emailsPerDay: '',
+                  })}
                 >
-                  Calculate My Impact
-                  <Calculator className="ml-2 h-4 w-4" />
+                  Reset All Fields
                 </Button>
               </div>
             </form>
-
-            {/* Results */}
-            {result !== null && (
-              <div className="mt-8 p-6 bg-green-50 border border-green-200 rounded-lg text-center">
-                <h3 className="text-xl font-semibold text-green-800 mb-2">
-                  Your Carbon Footprint Results
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div className="text-center p-4 bg-white rounded-lg border border-green-200">
-                    <p className="text-2xl font-bold text-green-600">
-                      {result} g CO₂e
-                    </p>
-                    <p className="text-sm text-green-600">Total Weekly Emissions</p>
-                  </div>
-                  <div className="text-center p-4 bg-white rounded-lg border border-green-200">
-                    <p className="text-2xl font-bold text-green-600">
-                      {(result / 1000).toFixed(3)} kg CO₂e
-                    </p>
-                    <p className="text-sm text-green-600">In Kilograms</p>
-                  </div>
-                </div>
-
-                <div className="flex justify-center gap-4">
-                  <Button
-                    onClick={handleReset}
-                    variant="outline"
-                    className="border-green-600 text-green-700 hover:bg-green-50"
-                  >
-                    Calculate Again
-                  </Button>
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
       </div>
