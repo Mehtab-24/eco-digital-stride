@@ -3,31 +3,30 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { BarChart3, Leaf, Lightbulb, Calculator, TrendingDown, TreePine } from 'lucide-react';
-import { RotateCcw } from "lucide-react";
+import { BarChart3, Leaf, Lightbulb, Calculator, TrendingDown, TreePine, RotateCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-
+// Type that matches what you're actually saving
 interface FootprintData {
-  streaming: number;
-  cloudStorage: number;
-  deviceCharging: number;
-  timestamp: string;
-  inputs: {
-    streamingHours: string;
-    cloudStorageGB: string;
-    chargingFrequency: string;
-  };
+  food: number; // kg CO₂e per week
+  travel: number; // kg CO₂e per week
+  electricity: number; // kg CO₂e per week
+  total: number; // Total weekly emissions
 }
 
 const Dashboard = () => {
   const [data, setData] = useState<FootprintData | null>(null);
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+
   useEffect(() => {
     const savedData = localStorage.getItem('carbonFootprintData');
     if (savedData) {
-      setData(JSON.parse(savedData));
-      
+      try {
+        const parsed = JSON.parse(savedData);
+        setData(parsed);
+      } catch (error) {
+        console.error("Failed to parse carbon footprint data:", error);
+      }
     }
   }, []);
 
@@ -55,49 +54,65 @@ const Dashboard = () => {
     );
   }
 
-  const totalEmissions = data.streaming + data.cloudStorage + data.deviceCharging;
-  const weeklyEmissions = totalEmissions * 7; // Convert daily to weekly
-  
+  // Daily emissions (divide weekly by 7)
+  const dailyEmissions = data.total / 7;
+
+  // Trees needed to offset annual emissions (~21kg CO₂ per tree)
+  const treesNeeded = Math.ceil((data.total * 52) / 21); // 52 weeks/year
+
+  // Weekly emissions in grams
+  const weeklyEmissionsGrams = Math.round(data.total * 1000);
+
+  // Chart data for bar chart
   const chartData = [
-    { category: 'Streaming', emissions: data.streaming, color: '#10b981' },
-    { category: 'Cloud Storage', emissions: data.cloudStorage, color: '#059669' },
-    { category: 'Device Charging', emissions: data.deviceCharging, color: '#047857' },
+    { category: 'Food', emissions: data.food },
+    { category: 'Travel', emissions: data.travel },
+    { category: 'Electricity', emissions: data.electricity },
   ];
 
+  // Pie chart data
   const pieData = chartData.map(item => ({
     name: item.category,
     value: item.emissions,
-    color: item.color,
+    color: item.category === 'Food' ? '#10b981' : 
+           item.category === 'Travel' ? '#059669' : '#047857',
   }));
 
-  const tips = [
-    {
-      category: 'Streaming',
-      tip: 'Reduce video quality when possible and use audio-only for music',
+  // Reduction tips based on high-emission areas
+  const tips = [];
+  if (data.food > data.travel && data.food > data.electricity) {
+    tips.push({
+      category: 'Food',
+      tip: 'Reduce meat consumption or switch to plant-based meals.',
+      impact: 'Can reduce emissions by up to 50%',
+    });
+  }
+  if (data.travel > data.food && data.travel > data.electricity) {
+    tips.push({
+      category: 'Travel',
+      tip: 'Use public transport, carpool, or bike instead of driving.',
+      impact: 'Can reduce emissions by up to 40%',
+    });
+  }
+  if (data.electricity > data.food && data.electricity > data.travel) {
+    tips.push({
+      category: 'Electricity',
+      tip: 'Switch to LED bulbs and unplug devices when not in use.',
       impact: 'Can reduce emissions by up to 30%',
-    },
-    {
-      category: 'Cloud Storage',
-      tip: 'Regularly clean up unused files and use compression',
-      impact: 'Can reduce storage needs by 20-40%',
-    },
-    {
-      category: 'Charging',
-      tip: 'Enable power saving modes and reduce screen brightness',
-      impact: 'Can extend battery life by 15-25%',
-    },
-  ];
+    });
+  }
 
+  // Equivalencies
   const equivalencies = [
     {
       icon: TreePine,
-      value: Math.ceil(weeklyEmissions * 52 / 21), // Trees needed per year (21kg CO2 per tree)
+      value: treesNeeded,
       unit: 'trees needed',
       description: 'to offset annual emissions',
     },
     {
       icon: TrendingDown,
-      value: Math.round(weeklyEmissions * 1000),
+      value: weeklyEmissionsGrams,
       unit: 'grams CO₂',
       description: 'weekly emissions',
     },
@@ -112,32 +127,31 @@ const Dashboard = () => {
             <BarChart3 className="h-8 w-8 text-white" />
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-eco-dark dark:text-gray-100">
-            Your Digital Carbon Footprint
+            Your Personal Carbon Footprint
           </h1>
           <p className="text-lg text-muted-foreground dark:text-gray-300">
-            Analysis of your digital activities and environmental impact
+            Analysis of your lifestyle and environmental impact
           </p>
         </div>
+
+        {/* Reset Button */}
         <div className="text-center mb-8">
-  <Button
-  variant="eco-outline"
-  size="lg"
-  onClick={() => {
-  const confirmReset = window.confirm("Are you sure you want to reset your carbon data and start fresh?");
-  if (confirmReset) {
-    localStorage.removeItem('carbonFootprintData');
-    navigate('/calculator'); 
-  }
-}}
-
-  className="flex items-center gap-2"
->
-  <RotateCcw className="h-4 w-4" />
-  Reset My Carbon Data
-</Button>
-
-
-</div>
+          <Button
+            variant="eco-outline"
+            size="lg"
+            onClick={() => {
+              const confirmReset = window.confirm("Are you sure you want to reset your carbon data and start fresh?");
+              if (confirmReset) {
+                localStorage.removeItem('carbonFootprintData');
+                navigate('/calculator'); 
+              }
+            }}
+            className="flex items-center gap-2"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Reset My Carbon Data
+          </Button>
+        </div>
 
         {/* Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
@@ -147,7 +161,7 @@ const Dashboard = () => {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground dark:text-gray-400">Daily Emissions</p>
                   <p className="text-2xl font-bold text-eco-primary">
-                    {totalEmissions.toFixed(3)} kg
+                    {dailyEmissions.toFixed(3)} kg
                   </p>
                   <p className="text-xs text-muted-foreground dark:text-gray-400">CO₂ equivalent</p>
                 </div>
@@ -252,18 +266,24 @@ const Dashboard = () => {
               Personalized Reduction Tips
             </CardTitle>
             <CardDescription className="dark:text-gray-400">
-              Ways to reduce your digital carbon footprint based on your usage patterns
+              Ways to reduce your personal carbon footprint based on your usage patterns
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {tips.map((tip, index) => (
-                <div key={index} className="space-y-3 p-4 bg-eco-primary/5 rounded-lg border border-eco-primary/20">
-                  <h4 className="font-semibold text-eco-primary">{tip.category}</h4>
-                  <p className="text-sm text-foreground dark:text-gray-300">{tip.tip}</p>
-                  <p className="text-xs text-muted-foreground dark:text-gray-400 font-medium">{tip.impact}</p>
+              {tips.length > 0 ? (
+                tips.map((tip, index) => (
+                  <div key={index} className="space-y-3 p-4 bg-eco-primary/5 rounded-lg border border-eco-primary/20">
+                    <h4 className="font-semibold text-eco-primary">{tip.category}</h4>
+                    <p className="text-sm text-foreground dark:text-gray-300">{tip.tip}</p>
+                    <p className="text-xs text-muted-foreground dark:text-gray-400 font-medium">{tip.impact}</p>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-3 text-center p-6">
+                  <p className="text-sm text-muted-foreground dark:text-gray-400">No personalized tips available.</p>
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>

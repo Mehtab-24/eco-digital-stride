@@ -1,102 +1,101 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Leaf, Calculator, BarChart3, Smartphone, Cloud, Monitor } from 'lucide-react';
+import { Leaf, Calculator, BarChart3, Smartphone, Cloud, Monitor, Car, Utensils, Lightbulb } from 'lucide-react';
 import heroImage from '/assets/images/hero-eco.jpg';
-import { estimateCarbonFootprint } from "../utils/carbonEstimator";
-import { ThemeToggle } from '@/components/ThemeToggle';
 
 function Home() {
   const features = [
     {
       icon: Calculator,
-      title: 'Digital Footprint Calculator',
-      description: 'Calculate emissions from streaming, cloud usage, and device charging with our easy-to-use tool.',
+      title: 'Personal & Digital Footprint',
+      description: 'Track emissions from daily life and digital habits — all in one place.',
     },
     {
       icon: BarChart3,
-      title: 'Visual Analytics',
-      description: 'See your carbon impact broken down by category with beautiful, interactive charts.',
+      title: 'Clear Visual Insights',
+      description: 'View detailed breakdowns of your carbon footprint with interactive charts.',
     },
     {
-      icon: Leaf,
-      title: 'Eco-Friendly Tips',
-      description: 'Get personalized recommendations to reduce your digital environmental impact.',
+      icon: Lightbulb,
+      title: 'Actionable Recommendations',
+      description: 'Get personalized tips to reduce your environmental impact effectively.',
     },
   ];
 
   const emissionSources = [
-    { icon: Monitor, name: 'Streaming', description: 'Video and music streaming services' },
-    { icon: Cloud, name: 'Cloud Storage', description: 'Online file storage and backups' },
-    { icon: Smartphone, name: 'Device Charging', description: 'Daily device power consumption' },
+    { icon: Utensils, name: 'Food', description: 'Meat consumption, diet choices' },
+    { icon: Car, name: 'Travel', description: 'Vehicle usage, commuting habits' },
+    { icon: Monitor, name: 'Electricity', description: 'Home energy use per week' },
+    { icon: Cloud, name: 'Cloud & Streaming', description: 'Data usage, online activity' },
   ];
 
   return (
     <div className="min-h-screen">
-      {/* Dark Mode Toggle */}
-      
       {/* Hero Section */}
       <section className="relative py-20 lg:py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-earth opacity-50"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-green-500 via-emerald-600 to-teal-700 opacity-60"></div>
         <div
           className="absolute inset-0 bg-cover bg-center opacity-20"
           style={{ backgroundImage: `url(${heroImage})` }}
         ></div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center space-y-8">
-            <div className="space-y-4">
-              <h1 className="text-4xl md:text-6xl font-bold text-eco-dark dark:text-gray-100 leading-tight">
-                Track Your Digital Impact.
-                <br />
-                <span className="text-eco-primary">Make Greener Choices.</span>
-              </h1>
-              <p className="text-xl md:text-2xl text-muted-foreground dark:text-gray-300 max-w-3xl mx-auto">
-                Understand and reduce your digital carbon footprint with our comprehensive tracking platform.
-              </p>
-            </div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
+          <h1 className="text-4xl md:text-6xl font-bold text-white leading-tight">
+            Understand Your Carbon Impact.
+            <br />
+            <span className="text-yellow-100">Live More Sustainably.</span>
+          </h1>
+          <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto">
+            Whether it's your lifestyle or digital habits, we help you measure, visualize, and reduce your carbon footprint.
+          </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/calculator">
-                <Button variant="eco" size="xl" className="w-full sm:w-auto">
-                  Calculate My Impact
-                  <Calculator className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Link to="/dashboard">
-                <Button variant="eco-outline" size="xl" className="w-full sm:w-auto">
-                  View Dashboard
-                  <BarChart3 className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-            </div>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+            <Link to="/carbon-footprint">
+              <Button
+                variant="secondary"
+                size="xl"
+                className="w-full sm:w-auto bg-white text-green-700 hover:bg-white/90 shadow-lg transition-all duration-200"
+              >
+                Calculate My Footprint
+                <Calculator className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+            <Link to="/dashboard">
+              <Button
+                variant="outline"
+                size="xl"
+                className="w-full sm:w-auto text-green-700 border-green-700 hover:bg-green-50 hover:text-green-800 transition-all duration-200"
+              >
+                View Dashboard
+                <BarChart3 className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <section className="py-20 bg-secondary">
+      {/* What We Measure Section */}
+      <section className="py-20 bg-gray-50 dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-6 mb-16">
-            <h2 className="text-3xl font-bold text-green-600 dark:text-green-400 text-center">
-              How We Estimate Your Digital Emissions
+            <h2 className="text-3xl font-bold text-gray-800 dark:text-white">
+              What We Measure
             </h2>
-
-            <p className="text-gray-600 dark:text-gray-300 text-center">
-              Our platform analyzes your digital activities and converts them into estimated carbon emissions
-              using industry-standard calculations and energy consumption data.
+            <p className="text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+              Our platform calculates emissions from everyday activities — both physical and digital — using science-backed data.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {emissionSources.map((source, index) => (
-              <Card key={index} className="hover:shadow-soft transition-all duration-300 hover:scale-105">
-                <CardContent className="p-8 text-center space-y-4">
-                  <div className="bg-gradient-eco p-4 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
-                    <source.icon className="h-8 w-8 text-white" />
+              <Card key={index} className="border-none hover:shadow-lg transition-all duration-300 hover:scale-105">
+                <CardContent className="p-6 text-center space-y-4">
+                  <div className="bg-green-100 dark:bg-green-900 p-3 rounded-full w-14 h-14 mx-auto flex items-center justify-center">
+                    <source.icon className="h-6 w-6 text-green-600 dark:text-green-400" />
                   </div>
-                  <h3 className="text-xl font-semibold text-eco-dark dark:text-gray-200">{source.name}</h3>
-                  <p className="text-muted-foreground dark:text-gray-400">{source.description}</p>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{source.name}</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{source.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -108,23 +107,23 @@ function Home() {
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-6 mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-eco-dark dark:text-gray-100">
-              Powerful Features for Conscious Users
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
+              Tools That Help You Reduce
             </h2>
-            <p className="text-lg text-muted-foreground dark:text-gray-400 max-w-3xl mx-auto">
-              Everything you need to understand, track, and reduce your digital environmental impact.
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              From personal insights to actionable steps, our tools empower sustainable living.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
             {features.map((feature, index) => (
               <div key={index} className="space-y-6">
-                <div className="bg-gradient-eco p-3 rounded-lg w-12 h-12 flex items-center justify-center">
+                <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-3 rounded-lg w-12 h-12 flex items-center justify-center shadow-md">
                   <feature.icon className="h-6 w-6 text-white" />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-xl font-semibold text-eco-dark dark:text-gray-200">{feature.title}</h3>
-                  <p className="text-muted-foreground dark:text-gray-400">{feature.description}</p>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{feature.title}</h3>
+                  <p className="text-gray-600 dark:text-gray-400">{feature.description}</p>
                 </div>
               </div>
             ))}
@@ -133,39 +132,24 @@ function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-eco text-white">
+      <section className="py-20 bg-gradient-to-r from-green-600 to-emerald-700 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
           <h2 className="text-3xl md:text-4xl font-bold">
-            Ready to Make a Difference?
+            Ready to Start Your Sustainability Journey?
           </h2>
           <p className="text-xl opacity-90 max-w-2xl mx-auto">
-            Start tracking your digital carbon footprint today and join thousands of users
-            making conscious choices for a greener future.
+            Join thousands of users who are tracking their carbon footprint and making meaningful changes.
           </p>
-          <Link to="/calculator">
-            <Button variant="secondary" size="xl" className="bg-white text-eco-primary hover:bg-white/90">
+          <Link to="/carbon-footprint">
+            <Button
+              variant="secondary"
+              size="xl"
+              className="bg-white text-green-700 hover:bg-white/90 shadow-xl transition-all duration-200"
+            >
               Get Started Now
               <Leaf className="ml-2 h-5 w-5" />
             </Button>
           </Link>
-          {/* Test Button for Carbon Estimation */}
-          <Button
-            variant="eco-outline"
-            className="mt-8"
-            onClick={() => {
-              const result = estimateCarbonFootprint({
-                streamingHours: 2,
-                mobileHours: 3,
-                laptopHours: 5,
-                cloudGB: 1,
-                emailsPerDay: 20,
-              });
-              console.log("Estimated Carbon Emissions:", result, "gCO2e");
-              alert(`Estimated Carbon Emissions: ${result} gCO2e`);
-            }}
-          >
-            Test Carbon Estimator
-          </Button>
         </div>
       </section>
     </div>

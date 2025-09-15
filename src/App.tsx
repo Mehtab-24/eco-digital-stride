@@ -1,35 +1,40 @@
-import { ThemeProvider } from "@/components/theme-provider";
+import React, { ReactNode } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter } from "react-router-dom";
+import { ErrorBoundary, FallbackProps } from "react-error-boundary";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-
+import { ThemeProvider } from "@/components/theme-provider";
 import Layout from "./components/Layout";
-import Home from "./pages/Home";
-import Dashboard from "./pages/Dashboard";
-import NotFound from "./pages/NotFound";
-import CarbonCalculator from "./pages/CarbonCalculator";
+import { AppRoutes } from "./routes";
 
-
+// Create a query client for React Query
 const queryClient = new QueryClient();
 
-const App = () => (
+// Fallback component for ErrorBoundary, typed
+const ErrorHandler = ({ error }: FallbackProps) => (
+  <div className="text-center p-8 bg-red-100 text-red-700 rounded-lg">
+    <h2 className="text-xl font-bold">Something went wrong!</h2>
+    <p>{error.message}</p>
+  </div>
+);
+
+const App = (): ReactNode => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/calculator" element={<CarbonCalculator />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Layout>
-      </BrowserRouter>
-    </TooltipProvider>
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Layout>
+            <ErrorBoundary FallbackComponent={ErrorHandler}>
+              <AppRoutes />
+            </ErrorBoundary>
+          </Layout>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

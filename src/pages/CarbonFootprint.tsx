@@ -1,27 +1,30 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Calculator as CalculatorIcon, Leaf, Monitor, Cloud, Smartphone } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Calculator as CalculatorIcon, Utensils, Car, Lightbulb, Leaf } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface EmissionData {
-  streaming: number;
-  cloudStorage: number;
-  deviceCharging: number;
-  laptopUsage: number;
-  emailUsage: number;
+  food: number;
+  travel: number;
+  electricity: number;
+  total: number;
 }
 
 const CarbonFootprint = () => {
   const [formData, setFormData] = useState({
-    streamingHours: '',
-    cloudStorageGB: '',
-    chargingFrequency: '',
-    laptopUsageHours: '',
-    emailsPerDay: '',
+    meatMealsPerWeek: "",
+    vehicleMilesPerWeek: "",
+    electricityKwhPerWeek: "",
   });
 
   const [isCalculating, setIsCalculating] = useState(false);
@@ -29,25 +32,33 @@ const CarbonFootprint = () => {
   const { toast } = useToast();
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const calculateEmissions = (): EmissionData => {
-    const streamingEmissions = parseFloat(formData.streamingHours) * 0.036 || 0;
-    const cloudEmissions = parseFloat(formData.cloudStorageGB) * 0.005 || 0;
-    const chargingEmissions = parseFloat(formData.chargingFrequency) * 0.008 || 0;
-    const laptopEmissions = parseFloat(formData.laptopUsageHours) * 0.02 || 0; // ~20g/hour
-    const emailEmissions = parseFloat(formData.emailsPerDay) * 0.004 || 0; // ~4g/email
+    // Approximate emission factors (kg CO₂e per unit)
+    const FOOD_EMISSION_FACTOR = 2.5; // kg CO₂e per meat-based meal
+    const TRAVEL_EMISSION_FACTOR = 0.41; // kg CO₂e per mile driven (gasoline car)
+    const ELECTRICITY_EMISSION_FACTOR = 0.45; // kg CO₂e per kWh (India average grid mix)
+
+    const foodEmissions =
+      (parseFloat(formData.meatMealsPerWeek) || 0) * FOOD_EMISSION_FACTOR;
+    const travelEmissions =
+      (parseFloat(formData.vehicleMilesPerWeek) || 0) * TRAVEL_EMISSION_FACTOR;
+    const electricityEmissions =
+      (parseFloat(formData.electricityKwhPerWeek) || 0) *
+      ELECTRICITY_EMISSION_FACTOR;
+
+    const total = foodEmissions + travelEmissions + electricityEmissions;
 
     return {
-      streaming: streamingEmissions,
-      cloudStorage: cloudEmissions,
-      deviceCharging: chargingEmissions,
-      laptopUsage: laptopEmissions,
-      emailUsage: emailEmissions,
+      food: parseFloat(foodEmissions.toFixed(2)),
+      travel: parseFloat(travelEmissions.toFixed(2)),
+      electricity: parseFloat(electricityEmissions.toFixed(2)),
+      total: parseFloat(total.toFixed(2)),
     };
   };
 
@@ -55,11 +66,9 @@ const CarbonFootprint = () => {
     e.preventDefault();
 
     if (
-      !formData.streamingHours ||
-      !formData.cloudStorageGB ||
-      !formData.chargingFrequency ||
-      !formData.laptopUsageHours ||
-      !formData.emailsPerDay
+      !formData.meatMealsPerWeek ||
+      !formData.vehicleMilesPerWeek ||
+      !formData.electricityKwhPerWeek
     ) {
       toast({
         title: "Missing Information",
@@ -71,102 +80,81 @@ const CarbonFootprint = () => {
 
     setIsCalculating(true);
 
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Simulate loading delay
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
     const emissions = calculateEmissions();
 
-    // Store results in localStorage for the dashboard
-    localStorage.setItem('carbonFootprintData', JSON.stringify({
-      ...emissions,
-      timestamp: new Date().toISOString(),
-      inputs: formData,
-    }));
+    // Save data for dashboard
+    localStorage.setItem("carbonFootprintData", JSON.stringify(emissions));
 
     setIsCalculating(false);
 
     toast({
       title: "Calculation Complete!",
-      description: "Your carbon footprint has been calculated. Redirecting to dashboard...",
+      description: "Your personal carbon footprint has been calculated. Redirecting to dashboard...",
     });
 
     setTimeout(() => {
-      navigate('/dashboard');
+      navigate("/dashboard");
     }, 1000);
   };
 
   const inputSections = [
     {
-      icon: Monitor,
-      title: 'Streaming Hours',
-      field: 'streamingHours',
-      label: 'Daily streaming hours',
-      placeholder: 'e.g., 4',
-      suffix: 'hours/day',
-      description: 'Include video streaming, music, and online gaming',
+      icon: Utensils,
+      title: "Food",
+      field: "meatMealsPerWeek",
+      label: "Meat-based meals per week",
+      placeholder: "e.g., 7",
+      suffix: "meals/week",
+      description: "Number of times you eat meat or animal products weekly",
     },
     {
-      icon: Cloud,
-      title: 'Cloud Storage',
-      field: 'cloudStorageGB',
-      label: 'Cloud storage usage',
-      placeholder: 'e.g., 50',
-      suffix: 'GB',
-      description: 'Total data stored in cloud services',
+      icon: Car,
+      title: "Travel",
+      field: "vehicleMilesPerWeek",
+      label: "Vehicle miles per week",
+      placeholder: "e.g., 100",
+      suffix: "miles/week",
+      description: "Total distance driven by car or other vehicles",
     },
     {
-      icon: Smartphone,
-      title: 'Device Charging',
-      field: 'chargingFrequency',
-      label: 'Daily charging cycles',
-      placeholder: 'e.g., 2',
-      suffix: 'charges/day',
-      description: 'All devices: phone, laptop, tablet, etc.',
-    },
-    {
-      icon: Monitor,
-      title: 'Laptop Usage',
-      field: 'laptopUsageHours',
-      label: 'Laptop usage (hours/day)',
-      placeholder: 'e.g., 5',
-      suffix: 'hours/day',
-      description: 'Estimated daily laptop screen time',
-    },
-    {
-      icon: Cloud,
-      title: 'Emails Sent',
-      field: 'emailsPerDay',
-      label: 'Emails sent per day',
-      placeholder: 'e.g., 20',
-      suffix: 'emails/day',
-      description: 'An average email emits ~4g CO₂',
+      icon: Lightbulb,
+      title: "Electricity",
+      field: "electricityKwhPerWeek",
+      label: "Home electricity usage",
+      placeholder: "e.g., 500",
+      suffix: "kWh/week",
+      description: "Weekly electricity consumption at home",
     },
   ];
 
   return (
-    <div className="min-h-screen py-12">
+    <div className="min-h-screen py-12 bg-gray-50 dark:bg-gray-900">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center space-y-6 mb-12">
-          <div className="bg-gradient-eco p-4 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
+          <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-4 rounded-full w-16 h-16 mx-auto flex items-center justify-center shadow-lg">
             <CalculatorIcon className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-eco-dark dark:text-gray-100">
-            Carbon Footprint Calculator
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
+            Personal Carbon Footprint Calculator
           </h1>
-          <p className="text-lg text-muted-foreground dark:text-gray-300 max-w-2xl mx-auto">
-            Calculate your digital carbon emissions by providing information about your daily digital activities.
+          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            Estimate your weekly carbon emissions based on food, travel, and electricity use.
           </p>
         </div>
 
         {/* Form */}
-        <Card className="shadow-eco">
+        <Card className="shadow-lg border-0 rounded-xl bg-white dark:bg-gray-800">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-eco-primary">
-              <Leaf className="h-5 w-5" />
-              Your Digital Activity
+            <CardTitle className="flex items-center gap-2 text-green-700 dark:text-green-400 text-2xl font-bold">
+              <Leaf className="h-6 w-6" />
+              Your Lifestyle
             </CardTitle>
-            <CardDescription className="dark:text-gray-400">
-              Fill in the details below to estimate your weekly digital carbon footprint.
+            <CardDescription className="dark:text-gray-300">
+              Fill in the details below to estimate your weekly carbon footprint.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -175,13 +163,13 @@ const CarbonFootprint = () => {
                 {inputSections.map((section, index) => (
                   <div key={index} className="space-y-4">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="bg-eco-primary/10 p-2 rounded-lg">
-                        <section.icon className="h-5 w-5 text-eco-primary" />
+                      <div className="bg-green-100 dark:bg-green-900/50 p-2 rounded-lg">
+                        <section.icon className="h-5 w-5 text-green-600 dark:text-green-400" />
                       </div>
-                      <h3 className="font-semibold text-eco-dark dark:text-gray-200">{section.title}</h3>
+                      <h3 className="font-semibold text-gray-900 dark:text-gray-100">{section.title}</h3>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor={section.field} className="text-sm font-medium dark:text-gray-300">
+                      <Label htmlFor={section.field} className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         {section.label}
                       </Label>
                       <div className="relative">
@@ -193,37 +181,38 @@ const CarbonFootprint = () => {
                           placeholder={section.placeholder}
                           value={formData[section.field as keyof typeof formData]}
                           onChange={(e) => handleInputChange(section.field, e.target.value)}
-                          className="pr-20"
+                          className="pr-20 border-gray-300 focus:border-green-500 focus:ring-green-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                         />
-                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-muted-foreground dark:text-gray-400">
+                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
                           {section.suffix}
                         </span>
                       </div>
-                      <p className="text-xs text-muted-foreground dark:text-gray-400">
-                        {section.description}
-                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{section.description}</p>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="bg-eco-primary/5 border border-eco-primary/20 rounded-lg p-6">
-                <h4 className="font-semibold text-eco-primary mb-2 flex items-center gap-2">
+
+              {/* Info Box */}
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
+                <h4 className="font-semibold text-green-800 dark:text-green-300 mb-2 flex items-center gap-2">
                   <Leaf className="h-4 w-4" />
                   How We Calculate
                 </h4>
-                <p className="text-sm text-muted-foreground dark:text-gray-400">
-                  Our calculations are based on industry research on energy consumption and carbon emissions 
-                  from digital activities. Results provide estimated weekly CO₂ emissions to help you understand 
-                  your digital environmental impact.
-                </p>
+                <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                  <li>• Meat meal: ~2.5 kg CO₂e</li>
+                  <li>• Car mile: ~0.41 kg CO₂e</li>
+                  <li>• 1 kWh electricity: ~0.45 kg CO₂e (India average)</li>
+                </ul>
               </div>
+
+              {/* Submit Button */}
               <div className="text-center">
-                <Button 
-                  type="submit" 
-                  variant="eco" 
-                  size="xl" 
+                <Button
+                  type="submit"
+                  size="lg"
                   disabled={isCalculating}
-                  className="w-full sm:w-auto min-w-[200px]"
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-8 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
                 >
                   {isCalculating ? (
                     <>
@@ -238,18 +227,20 @@ const CarbonFootprint = () => {
                   )}
                 </Button>
               </div>
+
+              {/* Reset Button */}
               <div className="text-center">
                 <Button
                   type="button"
                   variant="ghost"
-                  className="text-sm text-eco-primary underline hover:no-underline"
-                  onClick={() => setFormData({
-                    streamingHours: '',
-                    cloudStorageGB: '',
-                    chargingFrequency: '',
-                    laptopUsageHours: '',
-                    emailsPerDay: '',
-                  })}
+                  className="text-sm text-green-600 dark:text-green-400 underline hover:no-underline"
+                  onClick={() =>
+                    setFormData({
+                      meatMealsPerWeek: "",
+                      vehicleMilesPerWeek: "",
+                      electricityKwhPerWeek: "",
+                    })
+                  }
                 >
                   Reset All Fields
                 </Button>
