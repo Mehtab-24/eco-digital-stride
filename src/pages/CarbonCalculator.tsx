@@ -1,3 +1,4 @@
+// src/pages/CarbonCalculator.tsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -5,9 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-
 import { Calculator as CalculatorIcon, Leaf, Monitor, Cloud, Smartphone } from 'lucide-react';
-
 import { useToast } from '@/hooks/use-toast';
 
 interface EmissionData {
@@ -18,14 +17,14 @@ interface EmissionData {
   emailUsage: number;
 }
 
-const Calculator = () => {
+const CarbonCalculator = () => {
   const [formData, setFormData] = useState({
-  streamingHours: '',
-  cloudStorageGB: '',
-  chargingFrequency: '',
-  laptopUsageHours: '',
-  emailsPerDay: '',
-});
+    streamingHours: '',
+    cloudStorageGB: '',
+    chargingFrequency: '',
+    laptopUsageHours: '',
+    emailsPerDay: '',
+  });
 
   const [isCalculating, setIsCalculating] = useState(false);
   const navigate = useNavigate();
@@ -39,61 +38,58 @@ const Calculator = () => {
   };
 
   const calculateEmissions = (): EmissionData => {
-  const streamingEmissions = parseFloat(formData.streamingHours) * 0.036 || 0;
-  const cloudEmissions = parseFloat(formData.cloudStorageGB) * 0.005 || 0;
-  const chargingEmissions = parseFloat(formData.chargingFrequency) * 0.008 || 0;
-  const laptopEmissions = parseFloat(formData.laptopUsageHours) * 0.02 || 0; // ~20g/hour
-  const emailEmissions = parseFloat(formData.emailsPerDay) * 0.004 || 0; // ~4g/email
+    const streamingEmissions = parseFloat(formData.streamingHours) * 0.036 || 0;
+    const cloudEmissions = parseFloat(formData.cloudStorageGB) * 0.005 || 0;
+    const chargingEmissions = parseFloat(formData.chargingFrequency) * 0.008 || 0;
+    const laptopEmissions = parseFloat(formData.laptopUsageHours) * 0.02 || 0;
+    const emailEmissions = parseFloat(formData.emailsPerDay) * 0.004 || 0;
 
-  return {
-    streaming: streamingEmissions,
-    cloudStorage: cloudEmissions,
-    deviceCharging: chargingEmissions,
-    laptopUsage: laptopEmissions,
-    emailUsage: emailEmissions,
+    return {
+      streaming: streamingEmissions,
+      cloudStorage: cloudEmissions,
+      deviceCharging: chargingEmissions,
+      laptopUsage: laptopEmissions,
+      emailUsage: emailEmissions,
+    };
   };
-};
-;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (
-  !formData.streamingHours ||
-  !formData.cloudStorageGB ||
-  !formData.chargingFrequency ||
-  !formData.laptopUsageHours ||
-  !formData.emailsPerDay
-) {
-  toast({
-    title: "Missing Information",
-    description: "Please fill in all fields to calculate your carbon footprint.",
-    variant: "destructive",
-  });
-  return;
-}
+      !formData.streamingHours ||
+      !formData.cloudStorageGB ||
+      !formData.chargingFrequency ||
+      !formData.laptopUsageHours ||
+      !formData.emailsPerDay
+    ) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all fields to calculate your carbon footprint.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsCalculating(true);
-    
-    // Simulate calculation time
+
     await new Promise(resolve => setTimeout(resolve, 1500));
-    
+
     const emissions = calculateEmissions();
-    
-    // Store results in localStorage for the dashboard
+
     localStorage.setItem('carbonFootprintData', JSON.stringify({
       ...emissions,
       timestamp: new Date().toISOString(),
       inputs: formData,
     }));
-    
+
     setIsCalculating(false);
-    
+
     toast({
       title: "Calculation Complete!",
       description: "Your carbon footprint has been calculated. Redirecting to dashboard...",
     });
-    
+
     setTimeout(() => {
       navigate('/dashboard');
     }, 1000);
@@ -128,24 +124,23 @@ const Calculator = () => {
       description: 'All devices: phone, laptop, tablet, etc.',
     },
     {
-  icon: Monitor,
-  title: 'Laptop Usage',
-  field: 'laptopUsageHours',
-  label: 'Laptop usage (hours/day)',
-  placeholder: 'e.g., 5',
-  suffix: 'hours/day',
-  description: 'Estimated daily laptop screen time',
-},
-{
-  icon: Cloud,
-  title: 'Emails Sent',
-  field: 'emailsPerDay',
-  label: 'Emails sent per day',
-  placeholder: 'e.g., 20',
-  suffix: 'emails/day',
-  description: 'An average email emits ~4g CO₂',
-},
-
+      icon: Monitor,
+      title: 'Laptop Usage',
+      field: 'laptopUsageHours',
+      label: 'Laptop usage (hours/day)',
+      placeholder: 'e.g., 5',
+      suffix: 'hours/day',
+      description: 'Estimated daily laptop screen time',
+    },
+    {
+      icon: Cloud,
+      title: 'Emails Sent',
+      field: 'emailsPerDay',
+      label: 'Emails sent per day',
+      placeholder: 'e.g., 20',
+      suffix: 'emails/day',
+      description: 'An average email emits ~4g CO₂',
+    },
   ];
 
   return (
@@ -157,7 +152,7 @@ const Calculator = () => {
             <CalculatorIcon className="h-8 w-8 text-white" />
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-eco-dark dark:text-gray-100">
-            Carbon Footprint Calculator
+            Digital Carbon Footprint Calculator
           </h1>
           <p className="text-lg text-muted-foreground dark:text-gray-300 max-w-2xl mx-auto">
             Calculate your digital carbon emissions by providing information about your daily digital activities.
@@ -186,7 +181,6 @@ const Calculator = () => {
                       </div>
                       <h3 className="font-semibold text-eco-dark dark:text-gray-200">{section.title}</h3>
                     </div>
-                    
                     <div className="space-y-2">
                       <Label htmlFor={section.field} className="text-sm font-medium dark:text-gray-300">
                         {section.label}
@@ -198,7 +192,7 @@ const Calculator = () => {
                           min="0"
                           step="0.1"
                           placeholder={section.placeholder}
-                          value={formData[section.field as keyof typeof formData]}
+                          value={formData[section.field]}
                           onChange={(e) => handleInputChange(section.field, e.target.value)}
                           className="pr-20"
                         />
@@ -214,7 +208,7 @@ const Calculator = () => {
                 ))}
               </div>
 
-              {/* Information Box */}
+              {/* Info Box */}
               <div className="bg-eco-primary/5 border border-eco-primary/20 rounded-lg p-6">
                 <h4 className="font-semibold text-eco-primary mb-2 flex items-center gap-2">
                   <Leaf className="h-4 w-4" />
@@ -249,23 +243,23 @@ const Calculator = () => {
                   )}
                 </Button>
               </div>
-              <div className="text-center">
-  <Button
-    type="button"
-    variant="ghost"
-    className="text-sm text-eco-primary underline hover:no-underline"
-    onClick={() => setFormData({
-      streamingHours: '',
-      cloudStorageGB: '',
-      chargingFrequency: '',
-      laptopUsageHours: '',
-      emailsPerDay: '',
-    })}
-  >
-    Reset All Fields
-  </Button>
-</div>
 
+              <div className="text-center">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="text-sm text-eco-primary underline hover:no-underline"
+                  onClick={() => setFormData({
+                    streamingHours: '',
+                    cloudStorageGB: '',
+                    chargingFrequency: '',
+                    laptopUsageHours: '',
+                    emailsPerDay: '',
+                  })}
+                >
+                  Reset All Fields
+                </Button>
+              </div>
             </form>
           </CardContent>
         </Card>
@@ -274,4 +268,4 @@ const Calculator = () => {
   );
 };
 
-export default Calculator;
+export default CarbonCalculator;
