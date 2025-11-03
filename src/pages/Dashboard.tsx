@@ -6,12 +6,19 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { BarChart3, Leaf, Lightbulb, Calculator, TrendingDown, TreePine, RotateCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-// Type that matches what you're actually saving
 interface FootprintData {
-  food: number; // kg CO₂e per week
-  travel: number; // kg CO₂e per week
-  electricity: number; // kg CO₂e per week
-  total: number; // Total weekly emissions
+  // Personal emissions (food, travel, electricity)
+  food?: number;
+  travel?: number;
+  electricity?: number;
+  total?: number;
+
+  // Digital emissions (streaming, cloud, charging)
+  streaming?: number;
+  cloudStorage?: number;
+  deviceCharging?: number;
+  laptopUsage?: number;
+  emailUsage?: number;
 }
 
 const Dashboard = () => {
@@ -54,23 +61,40 @@ const Dashboard = () => {
     );
   }
 
-  // Daily emissions (divide weekly by 7)
-  const dailyEmissions = data.total / 7;
+  // Check which type of data we have
+  const hasPersonalData = data.food !== undefined && data.travel !== undefined && data.electricity !== undefined;
+  const hasDigitalData = data.streaming !== undefined && data.cloudStorage !== undefined && data.deviceCharging !== undefined;
 
-  // Trees needed to offset annual emissions (~21kg CO₂ per tree)
-  const treesNeeded = Math.ceil((data.total * 52) / 21); // 52 weeks/year
+  // Total emissions (personal or digital)
+  let totalEmissions = 0;
+  if (hasPersonalData) {
+    totalEmissions = (data.food || 0) + (data.travel || 0) + (data.electricity || 0);
+  } else if (hasDigitalData) {
+    totalEmissions = (data.streaming || 0) + (data.cloudStorage || 0) + (data.deviceCharging || 0) + (data.laptopUsage || 0) + (data.emailUsage || 0);
+  }
 
-  // Weekly emissions in grams
-  const weeklyEmissionsGrams = Math.round(data.total * 1000);
+  const dailyEmissions = totalEmissions / 7;
+  const treesNeeded = Math.ceil((totalEmissions * 52) / 21); // Trees needed per year
+  const weeklyEmissionsGrams = Math.round(totalEmissions * 1000);
 
-  // Chart data for bar chart
-  const chartData = [
-    { category: 'Food', emissions: data.food },
-    { category: 'Travel', emissions: data.travel },
-    { category: 'Electricity', emissions: data.electricity },
-  ];
+  // Chart data
+  const chartData = [];
+  if (hasPersonalData) {
+    chartData.push(
+      { category: 'Food', emissions: data.food || 0 },
+      { category: 'Travel', emissions: data.travel || 0 },
+      { category: 'Electricity', emissions: data.electricity || 0 }
+    );
+  } else if (hasDigitalData) {
+    chartData.push(
+      { category: 'Streaming', emissions: data.streaming || 0 },
+      { category: 'Cloud Storage', emissions: data.cloudStorage || 0 },
+      { category: 'Device Charging', emissions: data.deviceCharging || 0 },
+      { category: 'Laptop Usage', emissions: data.laptopUsage || 0 },
+      { category: 'Emails', emissions: data.emailUsage || 0 }
+    );
+  }
 
-  // Pie chart data
   const pieData = chartData.map(item => ({
     name: item.category,
     value: item.emissions,
@@ -78,31 +102,6 @@ const Dashboard = () => {
            item.category === 'Travel' ? '#059669' : '#047857',
   }));
 
-  // Reduction tips based on high-emission areas
-  const tips = [];
-  if (data.food > data.travel && data.food > data.electricity) {
-    tips.push({
-      category: 'Food',
-      tip: 'Reduce meat consumption or switch to plant-based meals.',
-      impact: 'Can reduce emissions by up to 50%',
-    });
-  }
-  if (data.travel > data.food && data.travel > data.electricity) {
-    tips.push({
-      category: 'Travel',
-      tip: 'Use public transport, carpool, or bike instead of driving.',
-      impact: 'Can reduce emissions by up to 40%',
-    });
-  }
-  if (data.electricity > data.food && data.electricity > data.travel) {
-    tips.push({
-      category: 'Electricity',
-      tip: 'Switch to LED bulbs and unplug devices when not in use.',
-      impact: 'Can reduce emissions by up to 30%',
-    });
-  }
-
-  // Equivalencies
   const equivalencies = [
     {
       icon: TreePine,
@@ -257,36 +256,6 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
-
-        {/* Reduction Tips */}
-        <Card className="shadow-soft">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 dark:text-gray-200">
-              <Lightbulb className="h-5 w-5 text-eco-primary" />
-              Personalized Reduction Tips
-            </CardTitle>
-            <CardDescription className="dark:text-gray-400">
-              Ways to reduce your personal carbon footprint based on your usage patterns
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {tips.length > 0 ? (
-                tips.map((tip, index) => (
-                  <div key={index} className="space-y-3 p-4 bg-eco-primary/5 rounded-lg border border-eco-primary/20">
-                    <h4 className="font-semibold text-eco-primary">{tip.category}</h4>
-                    <p className="text-sm text-foreground dark:text-gray-300">{tip.tip}</p>
-                    <p className="text-xs text-muted-foreground dark:text-gray-400 font-medium">{tip.impact}</p>
-                  </div>
-                ))
-              ) : (
-                <div className="col-span-3 text-center p-6">
-                  <p className="text-sm text-muted-foreground dark:text-gray-400">No personalized tips available.</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
